@@ -7,7 +7,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace EspEdit.ViewModels;
 
@@ -17,6 +19,15 @@ public partial class MainPageViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
+    private ObservableCollection<RecordGroup> records;
+
+    [ObservableProperty]
+    private string selectedRecordText;
+
+    [ObservableProperty]
+    private string currentFile;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
     private Record selectedRecord;
     partial void OnSelectedRecordChanged(Record value)
@@ -24,19 +35,13 @@ public partial class MainPageViewModel : ObservableObject
         SelectedRecordText = value.Item.GetRawText();
     }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
-    private IList<Record> selectedRecords;
-    partial void OnSelectedRecordsChanged(IList<Record> value)
-    {
-        SelectedRecordText = value.FirstOrDefault() is not null ? value.FirstOrDefault().Item.GetRawText() : "";
-    }
-
-    [ObservableProperty]
-    private string selectedRecordText;
-
-    [ObservableProperty]
-    private ObservableCollection<RecordGroup> records;
+    //[ObservableProperty]
+    //[NotifyPropertyChangedFor(nameof(SelectedRecordText))]
+    //private ObservableCollection<Record> selectedRecords;
+    //partial void OnSelectedRecordsChanged(ObservableCollection<Record> value)
+    //{
+    //    SelectedRecordText = value.FirstOrDefault() is not null ? value.FirstOrDefault().Item.GetRawText() : "";
+    //}
 
     public MainPageViewModel(/*ISettingsService settingsService*/)
     {
@@ -44,15 +49,11 @@ public partial class MainPageViewModel : ObservableObject
         _settingsService = App.Current.Services.GetService<ISettingsService>();
 
         records = new ObservableCollection<RecordGroup>();
-
-        SelectedRecordText = "TEST TEST ";
     }
 
     [RelayCommand]
     private async Task Load()
     {
-        string json = "";
-
         try
         {
             // todo json convert
@@ -76,7 +77,7 @@ public partial class MainPageViewModel : ObservableObject
             if (result != null)
             {
                 // todo convert with tes3conv
-                json = File.ReadAllText(result.FullPath);
+                CurrentFile = result.FullPath;
             }
         }
         catch (Exception ex)
@@ -86,6 +87,13 @@ public partial class MainPageViewModel : ObservableObject
             return;
         }
 
+        LoadFile();
+    }
+
+    // todo make async
+    private void LoadFile()
+    {
+        string json = File.ReadAllText(CurrentFile);
         if (string.IsNullOrEmpty(json))
         {
             return;
@@ -127,55 +135,87 @@ public partial class MainPageViewModel : ObservableObject
             Records.Add(new(name, vals));
 
         }
-
     }
 
+
+    //[RelayCommand]
+    //private void SelectionChanged(IList<object> selectionChangedCommandParameter)
+    //{
+    //    if (selectionChangedCommandParameter == null)
+    //    {
+    //        return;
+    //    }
+
+    //    IEnumerable<Record> cast = selectionChangedCommandParameter.Cast<Record>();
+    //    if (cast is IEnumerable<Record> list)
+    //    {
+    //        SelectedRecords = new(list);
+    //    }
+    //}
+
+    // todo make async
+    [RelayCommand]
+    private void Reload()
+    {
+        LoadFile();
+    }
 
     [RelayCommand]
-    private void SelectionChanged(IList<Record> selectionChangedCommandParameter)
+    private static void Exit()
     {
-
-
+        Application.Current.Quit();
     }
 
+    // todo make async
     [RelayCommand]
     private void Save()
     {
-        // create backup
+        // backup file
+        string backup = $"{CurrentFile}.bak";
+        if (File.Exists(backup))
+        {
+            return;
+        }
+        File.Copy(CurrentFile, backup);
 
-        // save jsons
+        // create new file
+        string file = "";
+        foreach (RecordGroup group in Records)
+        {
+            foreach (Record item in group)
+            {
+                file += item.Item.GetRawText();
+            }
+        }
 
+        // save current file
+        File.WriteAllText(CurrentFile, file);
 
+        // convert to esp
+        // todo
     }
+
+    // todo make async
     [RelayCommand]
     private void Delete()
     {
+        IEnumerable<Record> flatRecords = Records.SelectMany(x => x);
+        IEnumerable<Record> selectedRecords = flatRecords.Where(x => x.IsSelected);
 
+        IEnumerable<Record> newFlatRecords = flatRecords.Except(selectedRecords);
+        ObservableCollection<RecordGroup> newRecords = new();
 
-
+        foreach (IGrouping<string, Record> group in newFlatRecords.ToLookup(x => x.Type))
+        {
+            IEnumerable<Record> vals = group.ToList();
+            newRecords.Add(new(group.Key, vals));
+        }
+        Records = newRecords;
     }
-}
 
-public class RecordGroup : List<Record>
-{
-    public string Name { get; private set; }
-
-    public RecordGroup(string name, IEnumerable<Record> records) : base(records)
+    [RelayCommand]
+    private void ChangeTheme()
     {
-        Name = name;
-    }
-}
 
-public class Record
-{
-    public Record(JsonElement item, string type, string id)
-    {
-        Item = item;
-        Type = type;
-        Id = id;
     }
-
-    public string Type { get; set; }
-    public string Id { get; set; }
-    public JsonElement Item { get; }
 }

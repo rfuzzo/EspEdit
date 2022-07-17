@@ -17,12 +17,16 @@
             <MenuFlyoutItem Text="Open" Command="{x:Binding LoadCommand}" x:Name="OpenButton"/>
             <MenuFlyoutItem Text="Save" Command="{x:Binding SaveCommand}" x:Name="SaveButton"/>
 
-            <MenuFlyoutItem Text="Exit" Command="{Binding CommandExit}" />
+            <MenuFlyoutItem Text="Exit" Command="{Binding ExitCommand}" />
 
         </MenuBarItem>
 
         <MenuBarItem Text="Edit" BindingContext="{x:Reference ViewModel}">
-            <MenuFlyoutItem Text="Refresh" Command="{Binding DeleteCommand}" />
+            <MenuFlyoutItem Text="Reload file" Command="{Binding ReloadCommand}" />
+            <MenuFlyoutItem Text="Delete selected" Command="{Binding DeleteCommand}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="View" BindingContext="{x:Reference ViewModel}">
             <MenuFlyoutItem Text="Change Theme" Command="{Binding ChangeThemeCommand}" />
         </MenuBarItem>
 
@@ -36,9 +40,16 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!--
+            SelectedItems ="{Binding SelectedRecords}"
+            SelectionChangedCommand="{Binding SelectionChangedCommand}"
+            SelectionChanged="CollectionView_SelectionChanged"
+            -->
 
-            <CollectionView ItemsSource="{Binding Records}" IsGrouped="true" SelectedItem="{Binding SelectedRecord}"
-                            SelectionMode="Multiple" SelectionChangedCommand="{Binding SelectionChangedCommand}"
+            <CollectionView ItemsSource="{Binding Records}" x:Name="RecordsView" IsGrouped="true" 
+                            SelectedItem="{Binding SelectedRecord}"
+                            SelectionMode="Single" 
+                            
                             >
 
                 <CollectionView.GroupHeaderTemplate>
@@ -53,19 +64,19 @@
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="10">
+                        <Grid >
 
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
+                                <ColumnDefinition Width="60"/>
+                                
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Label Grid.Column="0" Text="{Binding Type}"
-                                   FontAttributes="Bold" />
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="20,0,0,0"/>
 
-                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Id}"
-                                   FontAttributes="Italic"
-                                   VerticalOptions="End" />
+                            <!--<Label Grid.Column="1" Text="{Binding Type}" FontAttributes="Bold"  VerticalOptions="Center"/>-->
+
+                            <Label Grid.Column="1" Text="{Binding Id}" FontAttributes="Italic" VerticalOptions="Center" />
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
@@ -77,7 +88,7 @@
             
             
             <Editor Grid.Column="2" x:Name="editor" Text="{Binding SelectedRecordText}"
-                Placeholder="Enter your response here"
+                Placeholder="No record selected"
                 BackgroundColor="BlueViolet" />  
         </Grid>
 
