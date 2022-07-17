@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="EspEdit.MainPage"
+             xmlns:vm="clr-namespace:EspEdit.ViewModels"
+             
+            
+             >
+
+    <ContentPage.BindingContext>
+        <vm:MainPageViewModel x:Name="ViewModel"/>
+    </ContentPage.BindingContext>
+    
+    <ContentPage.MenuBarItems>
+
+        <MenuBarItem Text="File" BindingContext="{x:Reference ViewModel}">
+            <MenuFlyoutItem Text="Open" Command="{x:Binding LoadCommand}" x:Name="OpenButton"/>
+            <MenuFlyoutItem Text="Save" Command="{x:Binding SaveCommand}" x:Name="SaveButton"/>
+
+            <MenuFlyoutItem Text="Exit" Command="{Binding CommandExit}" />
+
+        </MenuBarItem>
+
+        <MenuBarItem Text="Edit" BindingContext="{x:Reference ViewModel}">
+            <MenuFlyoutItem Text="Refresh" Command="{Binding DeleteCommand}" />
+            <MenuFlyoutItem Text="Change Theme" Command="{Binding ChangeThemeCommand}" />
+        </MenuBarItem>
+
+    </ContentPage.MenuBarItems>
+
+    <Grid>
+        <Grid >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+
+            <CollectionView ItemsSource="{Binding Records}" IsGrouped="true" SelectedItem="{Binding SelectedRecord}"
+                            SelectionMode="Multiple" SelectionChangedCommand="{Binding SelectionChangedCommand}"
+                            >
+
+                <CollectionView.GroupHeaderTemplate>
+                    <DataTemplate>
+                        <HorizontalStackLayout BackgroundColor="DarkSlateGray">
+                            <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
+                            <Label Text="{Binding Count, StringFormat='Total: {0:D}'}" FontSize="14" Margin="10,0,0,0" VerticalTextAlignment="End" />
+                        </HorizontalStackLayout>
+                        
+                    </DataTemplate>
+                </CollectionView.GroupHeaderTemplate>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+
+                            <Label Grid.Column="0" Text="{Binding Type}"
+                                   FontAttributes="Bold" />
+
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Id}"
+                                   FontAttributes="Italic"
+                                   VerticalOptions="End" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                
+                
+            </CollectionView>
+
+            
+            
+            <Editor Grid.Column="2" x:Name="editor" Text="{Binding SelectedRecordText}"
+                Placeholder="Enter your response here"
+                BackgroundColor="BlueViolet" />  
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
