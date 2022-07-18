@@ -52,6 +52,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="lib\tes3conv.exe" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="lib\tes3conv.exe">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview4" />
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
 	</ItemGroup>

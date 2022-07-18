@@ -13,7 +13,7 @@ public class Record
 
     public string Type { get; set; }
     public string Id { get; set; }
-    public JsonElement Item { get; }
+    public JsonElement Item { get; set; }
 
     public bool IsSelected { get; set; }
 }

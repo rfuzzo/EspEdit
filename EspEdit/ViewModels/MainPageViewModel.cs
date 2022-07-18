@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EspEdit.Services;
+using Microsoft.Maui;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -16,8 +18,6 @@ namespace EspEdit.ViewModels;
 [ObservableRecipient]
 public partial class MainPageViewModel : ObservableObject
 {
-    private readonly ISettingsService _settingsService;
-
     [ObservableProperty]
     private ObservableCollection<RecordGroup> records;
 
@@ -30,29 +30,15 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
     private Record selectedRecord;
-    partial void OnSelectedRecordChanged(Record value)
+    partial void OnSelectedRecordChanged(Record value) => SelectedRecordText = value.Item.GetRawText();
+
+    public MainPageViewModel()
     {
-        SelectedRecordText = value.Item.GetRawText();
-    }
-
-    //[ObservableProperty]
-    //[NotifyPropertyChangedFor(nameof(SelectedRecordText))]
-    //private ObservableCollection<Record> selectedRecords;
-    //partial void OnSelectedRecordsChanged(ObservableCollection<Record> value)
-    //{
-    //    SelectedRecordText = value.FirstOrDefault() is not null ? value.FirstOrDefault().Item.GetRawText() : "";
-    //}
-
-    public MainPageViewModel(/*ISettingsService settingsService*/)
-    {
-        //_settingsService = settingsService;
-        _settingsService = App.Current.Services.GetService<ISettingsService>();
-
         records = new ObservableCollection<RecordGroup>();
     }
 
     [RelayCommand]
-    private async Task Load()
+    private async Task LoadAsync()
     {
         try
         {
@@ -60,9 +46,9 @@ public partial class MainPageViewModel : ObservableObject
             FilePickerFileType customFileType = new(
             new Dictionary<DevicePlatform, IEnumerable<string>>
             {
+                { DevicePlatform.WinUI, new[] { ".json", ".esp", ".esm" } },
                 { DevicePlatform.iOS, new[] { ".json" } }, // or general UTType values
                 { DevicePlatform.Android, new[] { ".json" } },
-                { DevicePlatform.WinUI, new[] { ".json" } },
                 { DevicePlatform.Tizen, new[] { ".json" } },
                 { DevicePlatform.macOS, new[] { ".json" } },
             });
@@ -87,23 +73,43 @@ public partial class MainPageViewModel : ObservableObject
             return;
         }
 
-        LoadFile();
+        await LoadFileInternalAsync();
     }
 
-    // todo make async
-    private void LoadFile()
+    private async Task LoadFileInternalAsync()
     {
-        string json = File.ReadAllText(CurrentFile);
+        if (string.IsNullOrEmpty(CurrentFile))
+        {
+            return;
+        }
+
+        string json = "";
+        string extension = Path.GetExtension(CurrentFile).ToUpper();
+        switch (extension)
+        {
+            case ".JSON":
+                json = File.ReadAllText(CurrentFile);
+                break;
+            case ".ESP":
+            case ".ESM":
+                // convert to json with tes3conv
+                json = await ConvertToJsonAsync(CurrentFile);
+                break;
+            default:
+                break;
+        }
+
+        // double check again
         if (string.IsNullOrEmpty(json))
         {
             return;
         }
 
-        JsonElement dict;
+        JsonElement element;
         try
         {
-            JsonDocument doc = JsonDocument.Parse(json);
-            dict = JsonSerializer.Deserialize<JsonElement>(json);
+            //JsonDocument doc = JsonDocument.Parse(json);
+            element = JsonSerializer.Deserialize<JsonElement>(json);
         }
         catch (Exception ex)
         {
@@ -112,7 +118,7 @@ public partial class MainPageViewModel : ObservableObject
         }
 
         List<Record> records = new();
-        foreach (JsonElement item in dict.EnumerateArray())
+        foreach (JsonElement item in element.EnumerateArray())
         {
             string type = item.GetProperty("type").GetString();
 
@@ -137,27 +143,11 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-
-    //[RelayCommand]
-    //private void SelectionChanged(IList<object> selectionChangedCommandParameter)
-    //{
-    //    if (selectionChangedCommandParameter == null)
-    //    {
-    //        return;
-    //    }
-
-    //    IEnumerable<Record> cast = selectionChangedCommandParameter.Cast<Record>();
-    //    if (cast is IEnumerable<Record> list)
-    //    {
-    //        SelectedRecords = new(list);
-    //    }
-    //}
-
     // todo make async
     [RelayCommand]
-    private void Reload()
+    private async Task ReloadAsync()
     {
-        LoadFile();
+        await LoadFileInternalAsync();
     }
 
     [RelayCommand]
@@ -166,11 +156,11 @@ public partial class MainPageViewModel : ObservableObject
         Application.Current.Quit();
     }
 
-    // todo make async
     [RelayCommand]
-    private void Save()
+    private async Task SaveAsync()
     {
         // backup file
+        // todo fix numbering
         string backup = $"{CurrentFile}.bak";
         if (File.Exists(backup))
         {
@@ -184,15 +174,82 @@ public partial class MainPageViewModel : ObservableObject
         {
             foreach (Record item in group)
             {
+                // todo try parsing json
                 file += item.Item.GetRawText();
             }
         }
 
+
+        throw new NotImplementedException();
         // save current file
-        File.WriteAllText(CurrentFile, file);
+        //await File.WriteAllTextAsync(CurrentFile, file);
 
         // convert to esp
         // todo
+
+        await ConvertToEspAsync(file);
+    }
+
+    private async Task ConvertToEspAsync(string jsonPath)
+    {
+        //tes3conv "test.esp" "test.json"
+
+
+        await Task.Delay(1);
+    }
+
+    private async Task<string> ConvertToJsonAsync(string currentFile)
+    {
+        if (!await FileSystem.Current.AppPackageFileExistsAsync("lib/tes3conv.exe"))
+        {
+            // todo logging
+            return null;
+        }
+
+        // todo hash the exe
+        string tes3convPath = Path.Combine(FileSystem.Current.AppDataDirectory, Constants.Tes3Conv);
+        if (!File.Exists(tes3convPath))
+        {
+            using Stream fileStream = await FileSystem.Current.OpenAppPackageFileAsync("lib/tes3conv.exe");
+
+            // Write the file content to the app data directory
+            using FileStream outputStream = System.IO.File.OpenWrite(tes3convPath);
+            await fileStream.CopyToAsync(outputStream);
+        }
+
+        if (!File.Exists(tes3convPath))
+        {
+            // todo logging
+            return null;
+        }
+
+        //tes3conv "test.esp" to stdout
+        string arg = $"\"{currentFile}\"";
+        ProcessStartInfo si = new(tes3convPath, arg)
+        {
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            UseShellExecute = false,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+
+        };
+
+        string error = "";
+        Process p = new();
+        p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
+        {
+            error += e.Data;
+        });
+
+        p.StartInfo = si;
+        p.Start();
+
+        p.BeginErrorReadLine();
+        string output = await p.StandardOutput.ReadToEndAsync();
+        await p.WaitForExitAsync();
+
+        return output;
     }
 
     // todo make async
@@ -214,8 +271,49 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ChangeTheme()
+    private static void ChangeTheme()
     {
+        switch (Application.Current.UserAppTheme)
+        {
+            case AppTheme.Unspecified:
+                Application.Current.UserAppTheme = AppTheme.Light;
+                break;
+            case AppTheme.Light:
+                Application.Current.UserAppTheme = AppTheme.Dark;
+                break;
+            case AppTheme.Dark:
+                Application.Current.UserAppTheme = AppTheme.Light;
+                break;
+            default:
+                break;
+        }
 
+
+    }
+
+    [RelayCommand]
+    private void SaveRecord()
+    {
+        // parse json
+        JsonElement element;
+        try
+        {
+            element = JsonSerializer.Deserialize<JsonElement>(SelectedRecordText);
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
+        SelectedRecord.Item = element;
+    }
+
+    [RelayCommand]
+    private void RestoreRecord()
+    {
+        if (SelectedRecord is not null)
+        {
+            SelectedRecordText = SelectedRecord.Item.GetRawText();
+        }
     }
 }

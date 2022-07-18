@@ -15,15 +15,17 @@
 
         <MenuBarItem Text="File" BindingContext="{x:Reference ViewModel}">
             <MenuFlyoutItem Text="Open" Command="{x:Binding LoadCommand}" x:Name="OpenButton"/>
-            <MenuFlyoutItem Text="Save" Command="{x:Binding SaveCommand}" x:Name="SaveButton"/>
+            <MenuFlyoutItem Text="Save current file" Command="{x:Binding SaveCommand}" x:Name="SaveButton"/>
 
             <MenuFlyoutItem Text="Exit" Command="{Binding ExitCommand}" />
 
         </MenuBarItem>
 
         <MenuBarItem Text="Edit" BindingContext="{x:Reference ViewModel}">
-            <MenuFlyoutItem Text="Reload file" Command="{Binding ReloadCommand}" />
-            <MenuFlyoutItem Text="Delete selected" Command="{Binding DeleteCommand}" />
+            <MenuFlyoutItem Text="Reload current file" Command="{Binding ReloadCommand}" />
+            <MenuFlyoutItem Text="Delete selected records" Command="{Binding DeleteCommand}" />
+            <MenuFlyoutItem Text="Save selected record" Command="{Binding SaveRecordCommand}" />
+            <MenuFlyoutItem Text="Restore selected record" Command="{Binding RestoreRecordCommand}" />
         </MenuBarItem>
 
         <MenuBarItem Text="View" BindingContext="{x:Reference ViewModel}">
@@ -67,7 +69,7 @@
                         <Grid >
 
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="Auto"/>
                                 
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
