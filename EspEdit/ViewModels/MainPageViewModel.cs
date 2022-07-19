@@ -1,11 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EspEdit.Extensions;
 using EspEdit.Services;
 using Microsoft.Maui;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -18,6 +20,9 @@ namespace EspEdit.ViewModels;
 [ObservableRecipient]
 public partial class MainPageViewModel : ObservableObject
 {
+    private readonly IDialogService dialogService;
+    private readonly ITes3ConvService tes3ConvService;
+
     [ObservableProperty]
     private ObservableCollection<RecordGroup> records;
 
@@ -30,11 +35,27 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
     private Record selectedRecord;
-    partial void OnSelectedRecordChanged(Record value) => SelectedRecordText = value.Item.GetRawText();
+    partial void OnSelectedRecordChanged(Record value)
+    {
+        if (value?.Item is not null)
+        {
+            var text = value.Item.GetRawText();
+            SelectedRecordText = text;
+        }
+    }
 
     public MainPageViewModel()
     {
         records = new ObservableCollection<RecordGroup>();
+
+        // todo do this properly with constructor injection
+        dialogService = App.Current.Services.GetService<IDialogService>();
+        tes3ConvService = App.Current.Services.GetService<ITes3ConvService>();
+    }
+
+    private bool IsJson()
+    {
+        return Path.GetExtension(CurrentFile).ToUpper() == ".JSON";
     }
 
     [RelayCommand]
@@ -42,7 +63,6 @@ public partial class MainPageViewModel : ObservableObject
     {
         try
         {
-            // todo json convert
             FilePickerFileType customFileType = new(
             new Dictionary<DevicePlatform, IEnumerable<string>>
             {
@@ -62,7 +82,6 @@ public partial class MainPageViewModel : ObservableObject
             FileResult result = await FilePicker.Default.PickAsync(options);
             if (result != null)
             {
-                // todo convert with tes3conv
                 CurrentFile = result.FullPath;
             }
         }
@@ -83,21 +102,7 @@ public partial class MainPageViewModel : ObservableObject
             return;
         }
 
-        string json = "";
-        string extension = Path.GetExtension(CurrentFile).ToUpper();
-        switch (extension)
-        {
-            case ".JSON":
-                json = File.ReadAllText(CurrentFile);
-                break;
-            case ".ESP":
-            case ".ESM":
-                // convert to json with tes3conv
-                json = await ConvertToJsonAsync(CurrentFile);
-                break;
-            default:
-                break;
-        }
+        string json = IsJson() ? File.ReadAllText(CurrentFile) : await tes3ConvService.GetJsonFromEsp(new FileInfo(CurrentFile));
 
         // double check again
         if (string.IsNullOrEmpty(json))
@@ -105,11 +110,11 @@ public partial class MainPageViewModel : ObservableObject
             return;
         }
 
-        JsonElement element;
+        JsonElement document;
         try
         {
             //JsonDocument doc = JsonDocument.Parse(json);
-            element = JsonSerializer.Deserialize<JsonElement>(json);
+            document = JsonSerializer.Deserialize<JsonElement>(json);
         }
         catch (Exception ex)
         {
@@ -118,7 +123,7 @@ public partial class MainPageViewModel : ObservableObject
         }
 
         List<Record> records = new();
-        foreach (JsonElement item in element.EnumerateArray())
+        foreach (JsonElement item in document.EnumerateArray())
         {
             string type = item.GetProperty("type").GetString();
 
@@ -143,7 +148,6 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    // todo make async
     [RelayCommand]
     private async Task ReloadAsync()
     {
@@ -157,99 +161,56 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task SaveAsAsync()
+    {
+        await Task.Delay(1);
+    }
+
+    [RelayCommand]
     private async Task SaveAsync()
     {
-        // backup file
-        // todo fix numbering
-        string backup = $"{CurrentFile}.bak";
-        if (File.Exists(backup))
+        if (IsJson())
         {
-            return;
+            // nothing to back up
         }
-        File.Copy(CurrentFile, backup);
+        else
+        {
+            // backup the esp file
+            string backup = $"{CurrentFile}.bak";
+            if (!File.Exists(backup))
+            {
+                File.Copy(CurrentFile, backup);
+            }
+            else
+            {
+                // if a backup file already exists then overwrite
+                // todo better?
+            }
+        }
 
         // create new file
-        string file = "";
+        // todo move this to individual save? to speed up save times?
+        string file = "[\n";
         foreach (RecordGroup group in Records)
         {
             foreach (Record item in group)
             {
-                // todo try parsing json
-                file += item.Item.GetRawText();
+                string text = item.Item.GetRawText();
+                file += $"{text},\n";
             }
         }
+        file = file.TrimEnd('\n').TrimEnd(',');
+        file += "\n]";
 
-
-        throw new NotImplementedException();
-        // save current file
-        //await File.WriteAllTextAsync(CurrentFile, file);
-
-        // convert to esp
-        // todo
-
-        await ConvertToEspAsync(file);
-    }
-
-    private async Task ConvertToEspAsync(string jsonPath)
-    {
-        //tes3conv "test.esp" "test.json"
-
-
-        await Task.Delay(1);
-    }
-
-    private async Task<string> ConvertToJsonAsync(string currentFile)
-    {
-        if (!await FileSystem.Current.AppPackageFileExistsAsync("lib/tes3conv.exe"))
+        string espPath = IsJson() ? Path.ChangeExtension(CurrentFile, ".esp") : CurrentFile;
+        if (await tes3ConvService.ConvertJsonToEspAsync(file, espPath))
         {
-            // todo logging
-            return null;
+            // todo log success
         }
-
-        // todo hash the exe
-        string tes3convPath = Path.Combine(FileSystem.Current.AppDataDirectory, Constants.Tes3Conv);
-        if (!File.Exists(tes3convPath))
+        else
         {
-            using Stream fileStream = await FileSystem.Current.OpenAppPackageFileAsync("lib/tes3conv.exe");
-
-            // Write the file content to the app data directory
-            using FileStream outputStream = System.IO.File.OpenWrite(tes3convPath);
-            await fileStream.CopyToAsync(outputStream);
+            // todo log failure
         }
-
-        if (!File.Exists(tes3convPath))
-        {
-            // todo logging
-            return null;
-        }
-
-        //tes3conv "test.esp" to stdout
-        string arg = $"\"{currentFile}\"";
-        ProcessStartInfo si = new(tes3convPath, arg)
-        {
-            CreateNoWindow = true,
-            WindowStyle = ProcessWindowStyle.Hidden,
-            UseShellExecute = false,
-            RedirectStandardError = true,
-            RedirectStandardOutput = true,
-
-        };
-
-        string error = "";
-        Process p = new();
-        p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
-        {
-            error += e.Data;
-        });
-
-        p.StartInfo = si;
-        p.Start();
-
-        p.BeginErrorReadLine();
-        string output = await p.StandardOutput.ReadToEndAsync();
-        await p.WaitForExitAsync();
-
-        return output;
     }
 
     // todo make async

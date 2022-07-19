@@ -14,8 +14,9 @@
     <ContentPage.MenuBarItems>
 
         <MenuBarItem Text="File" BindingContext="{x:Reference ViewModel}">
-            <MenuFlyoutItem Text="Open" Command="{x:Binding LoadCommand}" x:Name="OpenButton"/>
-            <MenuFlyoutItem Text="Save current file" Command="{x:Binding SaveCommand}" x:Name="SaveButton"/>
+            <MenuFlyoutItem Text="Open" Command="{x:Binding LoadCommand}"/>
+            <MenuFlyoutItem Text="Save" Command="{x:Binding SaveCommand}"/>
+            <MenuFlyoutItem Text="Save As ..." Command="{x:Binding SaveAsCommand}"/>
 
             <MenuFlyoutItem Text="Exit" Command="{Binding ExitCommand}" />
 
@@ -60,7 +61,7 @@
                             <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
                             <Label Text="{Binding Count, StringFormat='Total: {0:D}'}" FontSize="14" Margin="10,0,0,0" VerticalTextAlignment="End" />
                         </HorizontalStackLayout>
-                        
+
                     </DataTemplate>
                 </CollectionView.GroupHeaderTemplate>
 
@@ -70,7 +71,7 @@
 
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                
+
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
@@ -83,15 +84,28 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
 
-                
-                
+
+
             </CollectionView>
 
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                
+                <!-- 
+                BackgroundColor="BlueViolet" 
+                -->
+                <Editor Grid.Row="0" x:Name="editor" Text="{Binding SelectedRecordText}" Placeholder="No record selected" />  
+                
+                <!-- TODO Property Grid -->
+                
+                
+            </Grid>
             
             
-            <Editor Grid.Column="2" x:Name="editor" Text="{Binding SelectedRecordText}"
-                Placeholder="No record selected"
-                BackgroundColor="BlueViolet" />  
         </Grid>
 
     </Grid>

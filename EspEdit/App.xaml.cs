@@ -31,7 +31,9 @@ public partial class App : Application
     {
         ServiceCollection services = new();
 
-        services.AddSingleton<ISettingsService, SettingsService>();
+        //services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddTransient<IDialogService, DialogService>();
+        services.AddTransient<ITes3ConvService, Tes3ConvService>();
 
         //services.AddTransient<MainPageViewModel>();
 
