@@ -20,42 +20,91 @@ namespace EspEdit.ViewModels;
 [ObservableRecipient]
 public partial class MainPageViewModel : ObservableObject
 {
-    private readonly IDialogService dialogService;
-    private readonly ITes3ConvService tes3ConvService;
+    private readonly IDialogService _dialogService;
+    private readonly ITes3ConvService _tes3ConvService;
+
+    //[ObservableProperty]
+    private Dictionary<string, Record> flatRecords = new();
+
+    //[ObservableProperty]
+    public ObservableCollection<RecordGroup> Records { get; set; }
 
     [ObservableProperty]
-    private ObservableCollection<RecordGroup> records;
-
-    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveRecordCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RestoreRecordCommand))]
     private string selectedRecordText;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
     private string currentFile;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
-    private Record selectedRecord;
-    partial void OnSelectedRecordChanged(Record value)
+    [NotifyCanExecuteChangedFor(nameof(SaveRecordCommand))]
+    private RecordViewModel selectedRecord;
+    partial void OnSelectedRecordChanged(RecordViewModel value)
     {
-        if (value?.Item is not null)
+        var key = value.Id;
+        if (flatRecords.TryGetValue(key, out var record))
         {
-            var text = value.Item.GetRawText();
-            SelectedRecordText = text;
+            SelectedRecordText = record.Item.GetRawText();
         }
     }
 
     public MainPageViewModel()
     {
-        records = new ObservableCollection<RecordGroup>();
+        Records = new ObservableCollection<RecordGroup>();
+
 
         // todo do this properly with constructor injection
-        dialogService = App.Current.Services.GetService<IDialogService>();
-        tes3ConvService = App.Current.Services.GetService<ITes3ConvService>();
+        _dialogService = App.Current.Services.GetService<IDialogService>();
+        _tes3ConvService = App.Current.Services.GetService<ITes3ConvService>();
     }
 
     private bool IsJson()
     {
         return Path.GetExtension(CurrentFile).ToUpper() == ".JSON";
+    }
+
+    [RelayCommand]
+    private void PerformSearch(string text)
+    {
+        string filter = text.ToLower();
+        UpdateGroupedRecordsWith(filter);
+    }
+
+    private void UpdateGroupedRecordsWith(string filter = null)
+    {
+        IEnumerable<Record> filteredRecords = !string.IsNullOrEmpty(filter)
+            ? flatRecords.Values.Where(x => x.Id.ToLower().Contains(filter))
+            : flatRecords.Values;
+
+        List<RecordGroup> _records = new();
+        ILookup<string, Record> groups = filteredRecords.ToLookup(x => x.Type);
+        foreach (IGrouping<string, Record> group in groups)
+        {
+            IEnumerable<RecordViewModel> vals = group.Select(x => new RecordViewModel($"{x.Type}.{x.Id}"));
+
+            _records.Add(new(group.Key, vals));
+        }
+
+        //Records.Clear();
+        //foreach (RecordGroup g in _records.Take(2))
+        //{
+        //    Records.Add(g);
+        //}
+
+        //Records.Add(new RecordGroup("test", new List<RecordViewModel>()
+        //{
+        //    new RecordViewModel("key1"),
+        //    new RecordViewModel("key2"),
+        //    new RecordViewModel("key3"),
+        //}));
+
+
+        Records = new(_records);
+        OnPropertyChanged(nameof(Records));
     }
 
     [RelayCommand]
@@ -85,7 +134,7 @@ public partial class MainPageViewModel : ObservableObject
                 CurrentFile = result.FullPath;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // The user canceled or something went wrong
             // todo logging
@@ -102,7 +151,7 @@ public partial class MainPageViewModel : ObservableObject
             return;
         }
 
-        string json = IsJson() ? File.ReadAllText(CurrentFile) : await tes3ConvService.GetJsonFromEsp(new FileInfo(CurrentFile));
+        string json = IsJson() ? File.ReadAllText(CurrentFile) : await _tes3ConvService.GetJsonFromEsp(new FileInfo(CurrentFile));
 
         // double check again
         if (string.IsNullOrEmpty(json))
@@ -116,13 +165,14 @@ public partial class MainPageViewModel : ObservableObject
             //JsonDocument doc = JsonDocument.Parse(json);
             document = JsonSerializer.Deserialize<JsonElement>(json);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
             // todo logging
+            await _dialogService.DisplayAlert("Could not load file", $"{e.Message}\n{e.StackTrace}", "OK");
             return;
         }
 
-        List<Record> records = new();
+        flatRecords.Clear();
         foreach (JsonElement item in document.EnumerateArray())
         {
             string type = item.GetProperty("type").GetString();
@@ -132,20 +182,38 @@ public partial class MainPageViewModel : ObservableObject
             {
                 id = idValue.GetString();
             }
+            else
+            {
+                // todo ids
+                switch (type)
+                {
+                    case "Header":
+                        id = item.GetProperty("author").GetString();
+                        break;
+                    case "PathGrid":
+                        id = item.GetProperty("cell").GetString();
+                        break;
+                    case "Info":
+                        id = item.GetProperty("info_id").GetString();
+                        break;
+                    default:
+                        break;
+                }
 
-            records.Add(new(item, type, id));
+
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException();
+            }
+
+            string key = $"{type}.{id}";
+            flatRecords.Add(key, new(item, type, id));
         }
 
-        Records.Clear();
-        ILookup<string, Record> groups = records.ToLookup(x => x.Type);
-        foreach (IGrouping<string, Record> group in groups)
-        {
-            string name = group.Key;
-            IEnumerable<Record> vals = groups[name];
 
-            Records.Add(new(name, vals));
-
-        }
+        UpdateGroupedRecordsWith();
     }
 
     [RelayCommand]
@@ -160,13 +228,14 @@ public partial class MainPageViewModel : ObservableObject
         Application.Current.Quit();
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsAsync()
     {
+        // todo save as
         await Task.Delay(1);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
         if (IsJson())
@@ -191,9 +260,10 @@ public partial class MainPageViewModel : ObservableObject
         // create new file
         // todo move this to individual save? to speed up save times?
         string file = "[\n";
-        foreach (RecordGroup group in Records)
+        //foreach (RecordGroup group in Records)
         {
-            foreach (Record item in group)
+            //foreach (Record item in group)
+            foreach (Record item in flatRecords.Values)
             {
                 string text = item.Item.GetRawText();
                 file += $"{text},\n";
@@ -203,32 +273,47 @@ public partial class MainPageViewModel : ObservableObject
         file += "\n]";
 
         string espPath = IsJson() ? Path.ChangeExtension(CurrentFile, ".esp") : CurrentFile;
-        if (await tes3ConvService.ConvertJsonToEspAsync(file, espPath))
+        if (await _tes3ConvService.ConvertJsonToEspAsync(file, espPath))
         {
             // todo log success
+            await _dialogService.DisplayAlert("Save", "File Saved", "OK");
         }
         else
         {
             // todo log failure
         }
     }
+    private bool CanSave()
+    {
+        return !string.IsNullOrEmpty(CurrentFile);
+    }
 
     // todo make async
     [RelayCommand]
     private void Delete()
     {
-        IEnumerable<Record> flatRecords = Records.SelectMany(x => x);
-        IEnumerable<Record> selectedRecords = flatRecords.Where(x => x.IsSelected);
+        IEnumerable<RecordViewModel> flatVms = Records.SelectMany(x => x);
+        IEnumerable<string> keysToRemove = flatVms.Where(x => x.IsSelected2).Select(x => x.Id);
 
-        IEnumerable<Record> newFlatRecords = flatRecords.Except(selectedRecords);
-        ObservableCollection<RecordGroup> newRecords = new();
-
-        foreach (IGrouping<string, Record> group in newFlatRecords.ToLookup(x => x.Type))
+        foreach (string item in keysToRemove)
         {
-            IEnumerable<Record> vals = group.ToList();
-            newRecords.Add(new(group.Key, vals));
+            flatRecords.Remove(item);
         }
-        Records = newRecords;
+
+        //if (selectedRecords.Any())
+        //{
+        //    IEnumerable<Record> newFlatRecords = flatRecords.Except(selectedRecords);
+        //    ObservableCollection<RecordGroup> newRecords = new();
+
+        //    foreach (IGrouping<string, Record> group in newFlatRecords.ToLookup(x => x.Type))
+        //    {
+        //        IEnumerable<Record> vals = group.ToList();
+        //        newRecords.Add(new(group.Key, vals));
+        //    }
+        //    Records = newRecords;
+        //}
+
+        UpdateGroupedRecordsWith();
     }
 
     [RelayCommand]
@@ -252,8 +337,8 @@ public partial class MainPageViewModel : ObservableObject
 
     }
 
-    [RelayCommand]
-    private void SaveRecord()
+    [RelayCommand(CanExecute = nameof(CanSaveRecord))]
+    private async Task SaveRecord()
     {
         // parse json
         JsonElement element;
@@ -261,20 +346,30 @@ public partial class MainPageViewModel : ObservableObject
         {
             element = JsonSerializer.Deserialize<JsonElement>(SelectedRecordText);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            await _dialogService.DisplayAlert("Could not save record", $"{e.Message}", "OK");
             return;
         }
 
-        SelectedRecord.Item = element;
+        string key = SelectedRecord.Id;
+        flatRecords[key].Item = element;
+    }
+    private bool CanSaveRecord()
+    {
+        return SelectedRecord is not null;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRestoreRecord))]
     private void RestoreRecord()
     {
-        if (SelectedRecord is not null)
-        {
-            SelectedRecordText = SelectedRecord.Item.GetRawText();
-        }
+        string key = SelectedRecord.Id;
+        Record record = flatRecords[key];
+
+        SelectedRecordText = record.Item.GetRawText();
+    }
+    private bool CanRestoreRecord()
+    {
+        return SelectedRecord is not null;
     }
 }

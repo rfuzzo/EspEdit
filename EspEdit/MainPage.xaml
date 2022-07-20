@@ -4,13 +4,12 @@
              x:Class="EspEdit.MainPage"
              xmlns:vm="clr-namespace:EspEdit.ViewModels"
              
-            
              >
 
     <ContentPage.BindingContext>
         <vm:MainPageViewModel x:Name="ViewModel"/>
     </ContentPage.BindingContext>
-    
+
     <ContentPage.MenuBarItems>
 
         <MenuBarItem Text="File" BindingContext="{x:Reference ViewModel}">
@@ -35,75 +34,96 @@
 
     </ContentPage.MenuBarItems>
 
+
     <Grid>
-        <Grid >
+
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="5"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!--
-            SelectedItems ="{Binding SelectedRecords}"
-            SelectionChangedCommand="{Binding SelectionChangedCommand}"
-            SelectionChanged="CollectionView_SelectionChanged"
-            -->
+            
 
-            <CollectionView ItemsSource="{Binding Records}" x:Name="RecordsView" IsGrouped="true" 
-                            SelectedItem="{Binding SelectedRecord}"
-                            SelectionMode="Single" 
-                            
-                            >
-
-                <CollectionView.GroupHeaderTemplate>
-                    <DataTemplate>
-                        <HorizontalStackLayout BackgroundColor="DarkSlateGray">
-                            <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
-                            <Label Text="{Binding Count, StringFormat='Total: {0:D}'}" FontSize="14" Margin="10,0,0,0" VerticalTextAlignment="End" />
-                        </HorizontalStackLayout>
-
-                    </DataTemplate>
-                </CollectionView.GroupHeaderTemplate>
-
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid >
-
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="20,0,0,0"/>
-
-                            <!--<Label Grid.Column="1" Text="{Binding Type}" FontAttributes="Bold"  VerticalOptions="Center"/>-->
-
-                            <Label Grid.Column="1" Text="{Binding Id}" FontAttributes="Italic" VerticalOptions="Center" />
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-
-
-
-            </CollectionView>
-
-
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+
+                <SearchBar Grid.Row="0"  x:Name="searchBar"
+                           SearchCommand="{Binding PerformSearchComamnd}"
+                           SearchCommandParameter="{Binding Text, Source={x:Reference searchBar}}" 
+                           />
+
+                <!--
+                SelectedItems ="{Binding SelectedRecords}"
+                SelectionChangedCommand="{Binding SelectionChangedCommand}"
+                SelectionChanged="CollectionView_SelectionChanged"
                 
-                <!-- 
-                BackgroundColor="BlueViolet" 
+                IsGroupingEnabled="True"
                 -->
-                <Editor Grid.Row="0" x:Name="editor" Text="{Binding SelectedRecordText}" Placeholder="No record selected" />  
-                
-                <!-- TODO Property Grid -->
-                
-                
+                <CollectionView Grid.Row="1" ItemsSource="{Binding Records}" x:Name="RecordsView" 
+                          
+                                IsGrouped="True"
+                        SelectedItem="{Binding SelectedRecord}"
+                        SelectionMode="Single" 
+                        >
+
+                    <CollectionView.GroupHeaderTemplate>
+                        <DataTemplate>
+                            <HorizontalStackLayout BackgroundColor="DarkSlateGray">
+                                <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
+                                <Label Text="{Binding Count, StringFormat='Total: {0:D}'}" FontSize="14" Margin="10,0,0,0" VerticalTextAlignment="End" />
+                            </HorizontalStackLayout>
+
+                        </DataTemplate>
+                    </CollectionView.GroupHeaderTemplate>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <HorizontalStackLayout>
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected2}" Margin="20,0,0,0"/>
+                                <Label Text="{Binding Id}" FontAttributes="Italic" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+
+
+                </CollectionView>
+
+
             </Grid>
+
+
+
+
+            <StackLayout Grid.Column="2">
+               
+
+                <HorizontalStackLayout>
+                    <Button Text="Save" Command="{Binding SaveRecordCommand}" ImageSource="save.png" HeightRequest="40"/>
+                    <Button Text="Restore" Command="{Binding RestoreRecordCommand}" ImageSource="refresh.png" HeightRequest="40"/>
+                </HorizontalStackLayout>
+                
+
+                <!--BackgroundColor="BlueViolet"-->
+
+                <ScrollView VerticalOptions="FillAndExpand">
+                    <Editor x:Name="editor" Text="{Binding SelectedRecordText}" Placeholder="No record selected" 
+                        
+                        
+                        />
+                </ScrollView>
+                
+                
+                 <!--TODO Property Grid--> 
+                
+                
+            </StackLayout>
             
             
         </Grid>

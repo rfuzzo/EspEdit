@@ -3,19 +3,15 @@ using System.Text.Json;
 
 namespace EspEdit.ViewModels
 {
-    [ObservableObject]
-    public partial class RecordViewModel
+    public class RecordViewModel
     {
-        public RecordViewModel(string type, JsonElement record)
+        public RecordViewModel(string id)
         {
-            Type = type;
-            Record = record;
+            Id = id;
         }
 
-        [ObservableProperty]
-        private string type;
+        public string Id { get; set; }
 
-        public JsonElement Record { get; set; }
-
+        public bool IsSelected2 { get; set; }
     }
 }
