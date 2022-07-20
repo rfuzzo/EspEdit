@@ -4,6 +4,7 @@
              x:Class="EspEdit.MainPage"
              xmlns:vm="clr-namespace:EspEdit.ViewModels"
              
+            
              >
 
     <ContentPage.BindingContext>
@@ -16,7 +17,7 @@
             <MenuFlyoutItem Text="Open" Command="{x:Binding LoadCommand}"/>
             <MenuFlyoutItem Text="Save" Command="{x:Binding SaveCommand}"/>
             <MenuFlyoutItem Text="Save As ..." Command="{x:Binding SaveAsCommand}"/>
-
+            
             <MenuFlyoutItem Text="Exit" Command="{Binding ExitCommand}" />
 
         </MenuBarItem>
@@ -34,42 +35,40 @@
 
     </ContentPage.MenuBarItems>
 
-
+    
     <Grid>
-
-        <Grid Grid.Row="0">
+        
+        <Grid >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="5"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            
 
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-
                 <SearchBar Grid.Row="0"  x:Name="searchBar"
-                           SearchCommand="{Binding PerformSearchComamnd}"
+                           SearchCommand="{Binding PerformSearchCommand}"
                            SearchCommandParameter="{Binding Text, Source={x:Reference searchBar}}" 
                            />
 
+
                 <!--
-                SelectedItems ="{Binding SelectedRecords}"
-                SelectionChangedCommand="{Binding SelectionChangedCommand}"
-                SelectionChanged="CollectionView_SelectionChanged"
-                
-                IsGroupingEnabled="True"
-                -->
-                <CollectionView Grid.Row="1" ItemsSource="{Binding Records}" x:Name="RecordsView" 
-                          
-                                IsGrouped="True"
-                        SelectedItem="{Binding SelectedRecord}"
-                        SelectionMode="Single" 
-                        >
+            SelectedItems ="{Binding SelectedRecords}"
+            SelectionChangedCommand="{Binding SelectionChangedCommand}"
+            SelectionChanged="CollectionView_SelectionChanged"
+            -->
+
+                <CollectionView  Grid.Row="1"  x:Name="RecordsView"
+                                 ItemsSource="{Binding Records}" IsGrouped="true" 
+                            SelectedItem="{Binding SelectedRecord}"
+                            SelectionMode="Single" 
+                            
+                            >
 
                     <CollectionView.GroupHeaderTemplate>
                         <DataTemplate>
@@ -83,49 +82,42 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <HorizontalStackLayout>
-                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected2}" Margin="20,0,0,0"/>
-                                <Label Text="{Binding Id}" FontAttributes="Italic" VerticalOptions="Center" />
-                            </HorizontalStackLayout>
 
+                            <!--<StackLayout Orientation="Horizontal" >
+                                <CheckBox IsChecked="{Binding IsSelected2}" Margin="20,0,0,0"/>
+                                <Label Text="{Binding Id}" FontAttributes="Italic" VerticalOptions="Center" />
+                            </StackLayout>-->
+                            
+                            <Grid HeightRequest="40">
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="20,0,0,0"/>
+                                <Label Grid.Column="1" Text="{Binding Key}" FontAttributes="Italic" VerticalOptions="Center" />
+                            </Grid>
+
+                            <!--<HorizontalStackLayout>
+                                <CheckBox IsChecked="{Binding IsSelected2}" Margin="20,0,0,0"/>
+                                <Label Text="{Binding Id}" FontAttributes="Italic" VerticalOptions="Center" />
+                            </HorizontalStackLayout>-->
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
 
 
 
                 </CollectionView>
-
-
             </Grid>
 
+           
 
 
 
-            <StackLayout Grid.Column="2">
-               
-
-                <HorizontalStackLayout>
-                    <Button Text="Save" Command="{Binding SaveRecordCommand}" ImageSource="save.png" HeightRequest="40"/>
-                    <Button Text="Restore" Command="{Binding RestoreRecordCommand}" ImageSource="refresh.png" HeightRequest="40"/>
-                </HorizontalStackLayout>
-                
-
-                <!--BackgroundColor="BlueViolet"-->
-
-                <ScrollView VerticalOptions="FillAndExpand">
-                    <Editor x:Name="editor" Text="{Binding SelectedRecordText}" Placeholder="No record selected" 
-                        
-                        
-                        />
-                </ScrollView>
-                
-                
-                 <!--TODO Property Grid--> 
-                
-                
-            </StackLayout>
-            
-            
+            <Editor Grid.Column="2" x:Name="editor" Text="{Binding SelectedRecordText}"
+                Placeholder="No record selected"
+                BackgroundColor="BlueViolet" />
         </Grid>
 
     </Grid>

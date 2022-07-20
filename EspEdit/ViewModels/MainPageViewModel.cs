@@ -27,6 +27,7 @@ public partial class MainPageViewModel : ObservableObject
     private Dictionary<string, Record> flatRecords = new();
 
     //[ObservableProperty]
+    //private ObservableCollection<RecordGroup> records;
     public ObservableCollection<RecordGroup> Records { get; set; }
 
     [ObservableProperty]
@@ -45,7 +46,7 @@ public partial class MainPageViewModel : ObservableObject
     private RecordViewModel selectedRecord;
     partial void OnSelectedRecordChanged(RecordViewModel value)
     {
-        var key = value.Id;
+        var key = value.Key;
         if (flatRecords.TryGetValue(key, out var record))
         {
             SelectedRecordText = record.Item.GetRawText();
@@ -77,31 +78,19 @@ public partial class MainPageViewModel : ObservableObject
     private void UpdateGroupedRecordsWith(string filter = null)
     {
         IEnumerable<Record> filteredRecords = !string.IsNullOrEmpty(filter)
-            ? flatRecords.Values.Where(x => x.Id.ToLower().Contains(filter))
+            ? flatRecords.Values.Where(x => x.Key.ToLower().Contains(filter))
             : flatRecords.Values;
 
         List<RecordGroup> _records = new();
         ILookup<string, Record> groups = filteredRecords.ToLookup(x => x.Type);
+
+        //Records.Clear();
         foreach (IGrouping<string, Record> group in groups)
         {
-            IEnumerable<RecordViewModel> vals = group.Select(x => new RecordViewModel($"{x.Type}.{x.Id}"));
+            IEnumerable<RecordViewModel> vals = group.Select(x => new RecordViewModel(x.Key));
 
             _records.Add(new(group.Key, vals));
         }
-
-        //Records.Clear();
-        //foreach (RecordGroup g in _records.Take(2))
-        //{
-        //    Records.Add(g);
-        //}
-
-        //Records.Add(new RecordGroup("test", new List<RecordViewModel>()
-        //{
-        //    new RecordViewModel("key1"),
-        //    new RecordViewModel("key2"),
-        //    new RecordViewModel("key3"),
-        //}));
-
 
         Records = new(_records);
         OnPropertyChanged(nameof(Records));
@@ -185,33 +174,18 @@ public partial class MainPageViewModel : ObservableObject
             else
             {
                 // todo ids
-                switch (type)
+                id = type switch
                 {
-                    case "Header":
-                        id = item.GetProperty("author").GetString();
-                        break;
-                    case "PathGrid":
-                        id = item.GetProperty("cell").GetString();
-                        break;
-                    case "Info":
-                        id = item.GetProperty("info_id").GetString();
-                        break;
-                    default:
-                        break;
-                }
-
-
-            }
-
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException();
+                    "Header" => item.GetProperty("author").GetString(),
+                    "PathGrid" => item.GetProperty("cell").GetString(),
+                    "Info" => item.GetProperty("info_id").GetString(),
+                    _ => throw new ArgumentException(),
+                };
             }
 
             string key = $"{type}.{id}";
-            flatRecords.Add(key, new(item, type, id));
+            flatRecords.Add(key, new(item, type, key));
         }
-
 
         UpdateGroupedRecordsWith();
     }
@@ -293,7 +267,7 @@ public partial class MainPageViewModel : ObservableObject
     private void Delete()
     {
         IEnumerable<RecordViewModel> flatVms = Records.SelectMany(x => x);
-        IEnumerable<string> keysToRemove = flatVms.Where(x => x.IsSelected2).Select(x => x.Id);
+        IEnumerable<string> keysToRemove = flatVms.Where(x => x.IsSelected).Select(x => x.Key);
 
         foreach (string item in keysToRemove)
         {
@@ -352,7 +326,7 @@ public partial class MainPageViewModel : ObservableObject
             return;
         }
 
-        string key = SelectedRecord.Id;
+        string key = SelectedRecord.Key;
         flatRecords[key].Item = element;
     }
     private bool CanSaveRecord()
@@ -363,7 +337,7 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRestoreRecord))]
     private void RestoreRecord()
     {
-        string key = SelectedRecord.Id;
+        string key = SelectedRecord.Key;
         Record record = flatRecords[key];
 
         SelectedRecordText = record.Item.GetRawText();

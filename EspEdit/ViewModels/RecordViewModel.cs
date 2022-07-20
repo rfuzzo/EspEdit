@@ -3,15 +3,19 @@ using System.Text.Json;
 
 namespace EspEdit.ViewModels
 {
+    /// <summary>
+    /// Represents a record in a CollectionView
+    /// Use Key to look up record in doctionary
+    /// </summary>
     public class RecordViewModel
     {
-        public RecordViewModel(string id)
+        public RecordViewModel(string key)
         {
-            Id = id;
+            Key = key;
         }
 
-        public string Id { get; set; }
+        public string Key { get; set; }
 
-        public bool IsSelected2 { get; set; }
+        public bool IsSelected { get; set; }
     }
 }
