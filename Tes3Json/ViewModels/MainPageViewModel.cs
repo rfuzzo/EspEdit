@@ -64,16 +64,11 @@ public partial class MainPageViewModel
     {
         records = new ObservableCollection<RecordGroupViewModel>();
 
-
-        // todo do this properly with constructor injection
         _dialogService = dialogService;
         _tes3ConvService = tes3ConvService;
         _fileService = fileService;
 
-        //_dialogService = App.Current.Services.GetService<IDialogService>();
-        //_tes3ConvService = App.Current.Services.GetService<ITes3ConvService>();
-
-
+        // dbg test
         string str = "";
         for (int i = 0; i < 1000; i++)
         {
@@ -103,7 +98,6 @@ public partial class MainPageViewModel
             ? flatRecords.Values.Where(x => x.Key.ToLower().Contains(filter))
             : flatRecords.Values;
 
-        //List<RecordGroup> _records = new();
         ILookup<string, Record> groups = filteredRecords.ToLookup(x => x.Type);
 
         Records.Clear();
@@ -113,18 +107,13 @@ public partial class MainPageViewModel
 
             Records.Add(new(group.Key, vals));
         }
-
-        //Records = new(_records);
     }
 
     [RelayCommand]
     private async Task LoadAsync()
     {
-
-        CurrentFile = await _fileService.OpenFileAsync("Please select an esp", new string[] { ".json", ".esp", ".esm" });
-
         // todo fix non-windows cases
-
+        CurrentFile = await _fileService.OpenFileAsync("Please select an esp", new string[] { ".json", ".esp", ".esm" });
 
         await LoadFileInternalAsync();
     }
@@ -180,17 +169,12 @@ public partial class MainPageViewModel
     }
 
     [RelayCommand]
-    private async Task ReloadAsync()
-    {
-        await LoadFileInternalAsync();
-    }
+    private async Task ReloadAsync() => await LoadFileInternalAsync();
 
     [RelayCommand(CanExecute = nameof(CanSave))]
-    private async Task SaveAsAsync()
-    {
+    private async Task SaveAsAsync() =>
         // todo save as
         await Task.Delay(1);
-    }
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
@@ -234,12 +218,15 @@ public partial class MainPageViewModel
             await _dialogService.DisplayAlert("Save", "File Saved", "OK");
         }
     }
-    private bool CanSave()
+    private bool CanSave() => !string.IsNullOrEmpty(CurrentFile);
+
+    [RelayCommand]
+    private void DeleteRecord(RecordViewModel viewModel)
     {
-        return !string.IsNullOrEmpty(CurrentFile);
+        flatRecords.Remove(viewModel.Key);
+        UpdateGroupedRecordsWith();
     }
 
-    // todo make async
     [RelayCommand]
     private void Delete()
     {
@@ -276,10 +263,7 @@ public partial class MainPageViewModel
         string key = SelectedRecord.Key;
         flatRecords[key].Item = element;
     }
-    private bool CanSaveRecord()
-    {
-        return SelectedRecord is not null;
-    }
+    private bool CanSaveRecord() => SelectedRecord is not null;
 
     [RelayCommand(CanExecute = nameof(CanRestoreRecord))]
     private void RestoreRecord()
@@ -290,8 +274,5 @@ public partial class MainPageViewModel
 
         SelectedRecordText = record.Item.GetRawText();
     }
-    private bool CanRestoreRecord()
-    {
-        return SelectedRecord is not null;
-    }
+    private bool CanRestoreRecord() => SelectedRecord is not null;
 }

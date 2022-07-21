@@ -10,7 +10,10 @@ namespace EspEdit.Services
 {
     internal class Tes3ConvService : ITes3ConvService
     {
-        private readonly string Tes3ConvPath = Path.Combine(FileSystem.Current.AppDataDirectory, Constants.Tes3Conv);
+        public const string LibDir = "lib";
+        public const string Tes3Conv = "tes3conv.exe";
+
+        private readonly string Tes3ConvPath = Path.Combine(FileSystem.Current.AppDataDirectory, Tes3Conv);
 
         private readonly IDialogService _dialogService;
 

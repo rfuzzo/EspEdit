@@ -44,10 +44,7 @@ public partial class MainPage : ContentPage
 
     }
 
-    private void MenuExit_Clicked(object sender, EventArgs e)
-    {
-        Application.Current.Quit();
-    }
+    private void MenuExit_Clicked(object sender, EventArgs e) => Application.Current.Quit();
 
     private void MenuChangeTheme_Clicked(object sender, EventArgs e)
     {
@@ -64,6 +61,14 @@ public partial class MainPage : ContentPage
                 break;
             default:
                 break;
+        }
+    }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        if (sender is ImageButton imageButton && imageButton.BindingContext is RecordViewModel viewModel && viewModel is not null)
+        {
+            ViewModel.DeleteRecordCommand.Execute(viewModel);
         }
     }
 

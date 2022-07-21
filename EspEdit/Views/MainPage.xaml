@@ -94,10 +94,14 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="20,0,0,0"/>
                                 <Label Grid.Column="1" Text="{Binding Key}" FontAttributes="Italic" VerticalOptions="Center" />
+                                <!--<ImageButton Grid.Column="2" Margin="0,0,20,0"
+                                             Source="save.png" HeightRequest="20" BackgroundColor="Red"
+                                             Clicked="ImageButton_Clicked"/>-->
                             </Grid>
 
                             <!--<HorizontalStackLayout>

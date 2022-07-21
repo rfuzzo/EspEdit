@@ -34,6 +34,7 @@ public partial class App : Application
 
         services.AddTransient<IDialogService, DialogService>();
         services.AddTransient<ITes3ConvService, Tes3ConvService>();
+        services.AddTransient<IFileService, FileService>();
 
         // Viewmodels
         services.AddTransient<MainPageViewModel>();
