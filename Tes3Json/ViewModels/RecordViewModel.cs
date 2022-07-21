@@ -18,5 +18,5 @@ public partial class RecordViewModel
     public string Key { get; set; }
 
     [ObservableProperty]
-    private bool isSelected;
+    private bool isChecked;
 }

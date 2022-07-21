@@ -43,8 +43,8 @@ public partial class MainPageViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
     [NotifyCanExecuteChangedFor(nameof(SaveRecordCommand))]
-    private RecordViewModel? selectedRecord;
-    partial void OnSelectedRecordChanged(RecordViewModel? value)
+    private RecordViewModel selectedRecord;
+    partial void OnSelectedRecordChanged(RecordViewModel value)
     {
         if (value is null)
         {
@@ -69,13 +69,13 @@ public partial class MainPageViewModel
         _fileService = fileService;
 
         // dbg test
-        string str = "";
-        for (int i = 0; i < 1000; i++)
-        {
-            str += "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
-        }
+        //string str = "";
+        //for (int i = 0; i < 1000; i++)
+        //{
+        //    str += "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+        //}
 
-        SelectedRecordText = str;
+        //SelectedRecordText = str;
 
     }
 
@@ -231,7 +231,7 @@ public partial class MainPageViewModel
     private void Delete()
     {
         IEnumerable<RecordViewModel> flatVms = Records.SelectMany(x => x);
-        IEnumerable<string> keysToRemove = flatVms.Where(x => x.IsSelected).Select(x => x.Key);
+        IEnumerable<string> keysToRemove = flatVms.Where(x => x.IsChecked).Select(x => x.Key);
 
         foreach (string item in keysToRemove)
         {

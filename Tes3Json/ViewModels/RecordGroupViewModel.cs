@@ -13,7 +13,7 @@ public partial class RecordGroupViewModel : List<RecordViewModel>
     {
         foreach (RecordViewModel item in this)
         {
-            item.IsSelected = value;
+            item.IsChecked = value;
         }
     }
 

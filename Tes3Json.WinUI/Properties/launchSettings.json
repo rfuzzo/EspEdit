@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Tes3Json.WinUI (Package)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": true,
+      "remoteDebugEnabled": false
+    },
+    "Tes3Json.WinUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
