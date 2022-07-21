@@ -58,7 +58,22 @@ public partial class MainPageViewModel
         }
     }
 
+    #region Editor
 
+    [ObservableProperty]
+    private bool editorInfoIsOpen;
+
+    [ObservableProperty]
+    private string editorInfoTitle;
+
+    [ObservableProperty]
+    private string editorInfoMessage;
+
+    //[ObservableProperty]
+    //private InfoBarSeverity editorInfoSeverity;
+
+
+    #endregion
 
     public MainPageViewModel(IDialogService dialogService, ITes3ConvService tes3ConvService, IFileService fileService)
     {
@@ -67,16 +82,6 @@ public partial class MainPageViewModel
         _dialogService = dialogService;
         _tes3ConvService = tes3ConvService;
         _fileService = fileService;
-
-        // dbg test
-        //string str = "";
-        //for (int i = 0; i < 1000; i++)
-        //{
-        //    str += "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
-        //}
-
-        //SelectedRecordText = str;
-
     }
 
     private bool IsJson()
@@ -172,20 +177,21 @@ public partial class MainPageViewModel
     private async Task ReloadAsync() => await LoadFileInternalAsync();
 
     [RelayCommand(CanExecute = nameof(CanSave))]
-    private async Task SaveAsAsync() =>
-        // todo save as
-        await Task.Delay(1);
+    private async Task SaveAsAsync()
+    {
+        ArgumentNullException.ThrowIfNull(CurrentFile);
+
+        string path = await _fileService.SaveFileAsync("Save As...", new string[] { ".json", ".esp", ".esm" }, Path.GetFileName(CurrentFile));
+
+        await SaveInternal(path);
+    }
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
         ArgumentNullException.ThrowIfNull(CurrentFile);
 
-        if (IsJson())
-        {
-            // nothing to back up
-        }
-        else
+        if (!IsJson())
         {
             // backup the esp file
             // if a backup file already exists then overwrite
@@ -194,30 +200,36 @@ public partial class MainPageViewModel
             {
                 File.Copy(CurrentFile, backup);
             }
-
         }
 
-        // create new file
-        // todo move this to individual save? to speed up save times?
+        await SaveInternal(CurrentFile);
+    }
+
+    private async Task SaveInternal(string path)
+    {
         string file = "[\n";
-        //foreach (RecordGroup group in Records)
+        foreach (Record item in flatRecords.Values)
         {
-            //foreach (Record item in group)
-            foreach (Record item in flatRecords.Values)
-            {
-                string text = item.Item.GetRawText();
-                file += $"{text},\n";
-            }
+            string text = item.Item.GetRawText();
+            file += $"{text},\n";
         }
         file = file.TrimEnd('\n').TrimEnd(',');
         file += "\n]";
 
-        string espPath = IsJson() ? Path.ChangeExtension(CurrentFile, ".esp") : CurrentFile;
-        if (await _tes3ConvService.ConvertJsonToEspAsync(file, espPath))
+        if (Path.GetExtension(path) == ".json")
         {
+            File.WriteAllText(path, file);
             await _dialogService.DisplayAlert("Save", "File Saved", "OK");
         }
+        else
+        {
+            if (await _tes3ConvService.ConvertJsonToEspAsync(file, path))
+            {
+                await _dialogService.DisplayAlert("Save", "File Saved", "OK");
+            }
+        }
     }
+
     private bool CanSave() => !string.IsNullOrEmpty(CurrentFile);
 
     [RelayCommand]
@@ -256,13 +268,25 @@ public partial class MainPageViewModel
         }
         catch (Exception e)
         {
-            await _dialogService.DisplayAlert("Could not save record", $"{e.Message}", "OK");
+            await DisplayInfoBarMessage("Could not save record", $"{e.Message}");
+            //await _dialogService.DisplayAlert("Could not save record", $"{e.Message}", "OK");
             return;
         }
 
         string key = SelectedRecord.Key;
         flatRecords[key].Item = element;
+        EditorInfoIsOpen = false;
     }
+    private async Task DisplayInfoBarMessage(string title, string message)
+    {
+        EditorInfoIsOpen = true;
+        EditorInfoMessage = message;
+        EditorInfoTitle = title;
+
+        //await Task.Delay(10);
+        //EditorInfoIsOpen = false;
+    }
+
     private bool CanSaveRecord() => SelectedRecord is not null;
 
     [RelayCommand(CanExecute = nameof(CanRestoreRecord))]
@@ -273,6 +297,7 @@ public partial class MainPageViewModel
         Record record = flatRecords[key];
 
         SelectedRecordText = record.Item.GetRawText();
+        EditorInfoIsOpen = false;
     }
     private bool CanRestoreRecord() => SelectedRecord is not null;
 }

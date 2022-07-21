@@ -14,4 +14,5 @@ public interface IFileService
     /// <param name="title"></param>
     /// <returns></returns>
     Task<string> OpenFileAsync(string title, string[] filetypes);
+    Task<string> SaveFileAsync(string title, string[] filetypes, string currentFile);
 }

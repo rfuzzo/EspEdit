@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,15 +26,12 @@ internal class FileService : IFileService
 {
     public async Task<string> OpenFileAsync(string title, string[] filetypes)
     {
-        //FileOpenPicker picker = new() { CommitButtonText = "Valider", SuggestedStartLocation = PickerLocationId.ComputerFolder, FileTypeFilter = { ".jpg", ".jpeg" } };
-        //WinUIConversionUtil.InitFileOpenPicker(picker);
-        //StorageFile fichier = await picker.PickSingleFileAsync();
-
         Windows.Storage.Pickers.FileOpenPicker picker = new()
         {
             ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail,
             SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesLibrary
         };
+
         foreach (string item in filetypes)
         {
             picker.FileTypeFilter.Add(item);
@@ -45,20 +43,27 @@ internal class FileService : IFileService
         IntPtr hwnd = Window.Current == null ? GetActiveWindow() : WinRT.Interop.WindowNative.GetWindowHandle(Window.Current);
         WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
-        // Now we can use the picker object as normal
         Windows.Storage.StorageFile file = await picker.PickSingleFileAsync();
 
-        if (file != null)
-        {
-            // Application now has read/write access to the picked file
-            return file.Path;
-        }
-        else
-        {
-            return null;
-        }
+        return file?.Path;
     }
 
+    public async Task<string> SaveFileAsync(string title, string[] filetypes, string currentFile)
+    {
+        FileSavePicker savePicker = new()
+        {
+            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary
+        };
 
+        savePicker.FileTypeChoices.Add("tes3 plugin", filetypes);
+        savePicker.SuggestedFileName = currentFile;
+
+        IntPtr hwnd = Window.Current == null ? GetActiveWindow() : WinRT.Interop.WindowNative.GetWindowHandle(Window.Current);
+        WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+        Windows.Storage.StorageFile file = await savePicker.PickSaveFileAsync();
+
+        return file?.Path;
+    }
 
 }

@@ -11,6 +11,9 @@
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Dialogs\AboutDialogContent.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -40,6 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tes3Json\Tes3Json.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Dialogs\AboutDialogContent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <!-- 

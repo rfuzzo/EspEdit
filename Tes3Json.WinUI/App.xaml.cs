@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -38,6 +40,10 @@ namespace Tes3Json.WinUI
         {
             InitializeComponent();
 
+
+
+
+
             Services = ConfigureServices();
         }
 
@@ -50,9 +56,11 @@ namespace Tes3Json.WinUI
         {
             m_window = new MainWindow();
             m_window.Activate();
+            MainRoot = m_window.Content as FrameworkElement;
         }
 
         private Window m_window;
+        public static FrameworkElement MainRoot { get; private set; }
 
         /// <summary>
         /// Gets the current <see cref="App"/> instance in use
@@ -81,5 +89,10 @@ namespace Tes3Json.WinUI
 
             return services.BuildServiceProvider();
         }
+
+
+
+
+
     }
 }
