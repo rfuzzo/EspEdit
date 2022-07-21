@@ -4,15 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Tes3Json.Services
+namespace Tes3Json.Services;
+
+public interface IFileService
 {
-    public interface IFileService
-    {
-        /// <summary>
-        /// Open a filepicker with 
-        /// </summary>
-        /// <param name="title"></param>
-        /// <returns></returns>
-        Task<string> OpenFileAsync(string title, string[] filetypes);
-    }
+    /// <summary>
+    /// Open a filepicker with 
+    /// </summary>
+    /// <param name="title"></param>
+    /// <returns></returns>
+    Task<string> OpenFileAsync(string title, string[] filetypes);
 }
