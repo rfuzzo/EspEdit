@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tes3Json.Services;
 
 namespace EspEdit.Services
 {
-    internal interface ITes3ConvService
-    {
-        Task<bool> ConvertJsonToEspAsync(FileInfo jsonFile, string espPath);
-        Task<bool> ConvertJsonToEspAsync(string jsonString, string espPath);
-        Task<string> GetJsonFromEsp(FileInfo espFile);
-    }
-
     internal class Tes3ConvService : ITes3ConvService
     {
         private readonly string Tes3ConvPath = Path.Combine(FileSystem.Current.AppDataDirectory, Constants.Tes3Conv);

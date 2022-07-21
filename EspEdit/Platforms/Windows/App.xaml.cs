@@ -21,21 +21,22 @@ public partial class App : MauiWinUIApplication
     {
         InitializeComponent();
 
-        //        Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping(nameof(IWindow), (handler, view) =>
-        //        {
-        //#if WINDOWS
-        //            Microsoft.UI.Xaml.Window nativeWindow = handler.PlatformView;
-        //            nativeWindow.Activate();
-        //            IntPtr hWnd = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
-        //            WindowId windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
-        //            AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-        //            //TODO: this is hardcoded stuff for fullhd
+        //todo credit
+        Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping(nameof(IWindow), (handler, view) =>
+        {
+#if WINDOWS
+            Microsoft.UI.Xaml.Window nativeWindow = handler.PlatformView;
+            nativeWindow.Activate();
+            IntPtr hWnd = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+            WindowId windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            //TODO: this is hardcoded stuff for fullhd
 
-        //            const int width = 800;
-        //            const int height = 700;
-        //            appWindow.MoveAndResize(new Windows.Graphics.RectInt32((1920 / 2) - (width / 2), (1080 / 2) - (height / 2), width, height));
-        //#endif
-        //        });
+            const int width = 900;
+            const int height = 700;
+            appWindow.MoveAndResize(new Windows.Graphics.RectInt32((1920 / 2) - (width / 2), (1080 / 2) - (height / 2), width, height));
+#endif
+        });
 
     }
 

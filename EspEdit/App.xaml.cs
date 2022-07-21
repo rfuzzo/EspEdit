@@ -1,5 +1,6 @@
 ﻿using EspEdit.Services;
-using EspEdit.ViewModels;
+using Tes3Json.Services;
+using Tes3Json.ViewModels;
 
 namespace EspEdit;
 
@@ -31,11 +32,11 @@ public partial class App : Application
     {
         ServiceCollection services = new();
 
-        //services.AddSingleton<ISettingsService, SettingsService>();
         services.AddTransient<IDialogService, DialogService>();
         services.AddTransient<ITes3ConvService, Tes3ConvService>();
 
-        //services.AddTransient<MainPageViewModel>();
+        // Viewmodels
+        services.AddTransient<MainPageViewModel>();
 
 
         return services.BuildServiceProvider();

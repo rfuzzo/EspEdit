@@ -1,8 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using EspEdit.Extensions;
-using EspEdit.Services;
-using Microsoft.Maui;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,38 +11,46 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Tes3Json.Models;
+using Tes3Json.Services;
+using static System.Net.Mime.MediaTypeNames;
 
-namespace EspEdit.ViewModels;
+namespace Tes3Json.ViewModels;
 
-[ObservableRecipient]
-public partial class MainPageViewModel : ObservableObject
+[ObservableObject]
+public partial class MainPageViewModel
 {
     private readonly IDialogService _dialogService;
     private readonly ITes3ConvService _tes3ConvService;
+    private readonly IFileService _fileService;
 
     //[ObservableProperty]
-    private Dictionary<string, Record> flatRecords = new();
+    private readonly Dictionary<string, Record> flatRecords = new();
 
-    //[ObservableProperty]
-    //private ObservableCollection<RecordGroup> records;
-    public ObservableCollection<RecordGroup> Records { get; set; }
+    [ObservableProperty]
+    private ObservableCollection<RecordGroupViewModel> records;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveRecordCommand))]
     [NotifyCanExecuteChangedFor(nameof(RestoreRecordCommand))]
-    private string selectedRecordText;
+    private string? selectedRecordText;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
-    private string currentFile;
+    private string? currentFile;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedRecordText))]
     [NotifyCanExecuteChangedFor(nameof(SaveRecordCommand))]
-    private RecordViewModel selectedRecord;
-    partial void OnSelectedRecordChanged(RecordViewModel value)
+    private RecordViewModel? selectedRecord;
+    partial void OnSelectedRecordChanged(RecordViewModel? value)
     {
+        if (value is null)
+        {
+            return;
+        }
+
         var key = value.Key;
         if (flatRecords.TryGetValue(key, out var record))
         {
@@ -53,18 +58,35 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    public MainPageViewModel()
+
+
+    public MainPageViewModel(IDialogService dialogService, ITes3ConvService tes3ConvService, IFileService fileService)
     {
-        Records = new ObservableCollection<RecordGroup>();
+        records = new ObservableCollection<RecordGroupViewModel>();
 
 
         // todo do this properly with constructor injection
-        _dialogService = App.Current.Services.GetService<IDialogService>();
-        _tes3ConvService = App.Current.Services.GetService<ITes3ConvService>();
+        _dialogService = dialogService;
+        _tes3ConvService = tes3ConvService;
+        _fileService = fileService;
+
+        //_dialogService = App.Current.Services.GetService<IDialogService>();
+        //_tes3ConvService = App.Current.Services.GetService<ITes3ConvService>();
+
+
+        string str = "";
+        for (int i = 0; i < 1000; i++)
+        {
+            str += "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+        }
+
+        SelectedRecordText = str;
+
     }
 
     private bool IsJson()
     {
+        ArgumentNullException.ThrowIfNull(CurrentFile);
         return Path.GetExtension(CurrentFile).ToUpper() == ".JSON";
     }
 
@@ -75,60 +97,34 @@ public partial class MainPageViewModel : ObservableObject
         UpdateGroupedRecordsWith(filter);
     }
 
-    private void UpdateGroupedRecordsWith(string filter = null)
+    private void UpdateGroupedRecordsWith(string filter = "")
     {
         IEnumerable<Record> filteredRecords = !string.IsNullOrEmpty(filter)
             ? flatRecords.Values.Where(x => x.Key.ToLower().Contains(filter))
             : flatRecords.Values;
 
-        List<RecordGroup> _records = new();
+        //List<RecordGroup> _records = new();
         ILookup<string, Record> groups = filteredRecords.ToLookup(x => x.Type);
 
-        //Records.Clear();
+        Records.Clear();
         foreach (IGrouping<string, Record> group in groups)
         {
             IEnumerable<RecordViewModel> vals = group.Select(x => new RecordViewModel(x.Key));
 
-            _records.Add(new(group.Key, vals));
+            Records.Add(new(group.Key, vals));
         }
 
-        Records = new(_records);
-        OnPropertyChanged(nameof(Records));
+        //Records = new(_records);
     }
 
     [RelayCommand]
     private async Task LoadAsync()
     {
-        try
-        {
-            FilePickerFileType customFileType = new(
-            new Dictionary<DevicePlatform, IEnumerable<string>>
-            {
-                { DevicePlatform.WinUI, new[] { ".json", ".esp", ".esm" } },
-                { DevicePlatform.iOS, new[] { ".json" } }, // or general UTType values
-                { DevicePlatform.Android, new[] { ".json" } },
-                { DevicePlatform.Tizen, new[] { ".json" } },
-                { DevicePlatform.macOS, new[] { ".json" } },
-            });
 
-            PickOptions options = new()
-            {
-                PickerTitle = "Please select an esp",
-                FileTypes = customFileType,
-            };
+        CurrentFile = await _fileService.OpenFileAsync("Please select an esp", new string[] { ".json", ".esp", ".esm" });
 
-            FileResult result = await FilePicker.Default.PickAsync(options);
-            if (result != null)
-            {
-                CurrentFile = result.FullPath;
-            }
-        }
-        catch (Exception)
-        {
-            // The user canceled or something went wrong
-            // todo logging
-            return;
-        }
+        // todo fix non-windows cases
+
 
         await LoadFileInternalAsync();
     }
@@ -164,25 +160,18 @@ public partial class MainPageViewModel : ObservableObject
         flatRecords.Clear();
         foreach (JsonElement item in document.EnumerateArray())
         {
-            string type = item.GetProperty("type").GetString();
+            string? type = item.GetProperty("type").GetString();
+            ArgumentNullException.ThrowIfNull(type);
 
-            string id = "";
-            if (item.TryGetProperty("id", out JsonElement idValue))
-            {
-                id = idValue.GetString();
-            }
-            else
-            {
-                // todo ids
-                id = type switch
+            string? id = item.TryGetProperty("id", out JsonElement idValue)
+                ? idValue.GetString()
+                : type switch
                 {
-                    "Header" => item.GetProperty("author").GetString(),
+                    "Header" => item.GetProperty("version").GetSingle().ToString(),
                     "PathGrid" => item.GetProperty("cell").GetString(),
                     "Info" => item.GetProperty("info_id").GetString(),
                     _ => throw new ArgumentException(),
                 };
-            }
-
             string key = $"{type}.{id}";
             flatRecords.Add(key, new(item, type, key));
         }
@@ -196,12 +185,6 @@ public partial class MainPageViewModel : ObservableObject
         await LoadFileInternalAsync();
     }
 
-    [RelayCommand]
-    private static void Exit()
-    {
-        Application.Current.Quit();
-    }
-
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsAsync()
     {
@@ -212,6 +195,8 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
+        ArgumentNullException.ThrowIfNull(CurrentFile);
+
         if (IsJson())
         {
             // nothing to back up
@@ -219,16 +204,13 @@ public partial class MainPageViewModel : ObservableObject
         else
         {
             // backup the esp file
+            // if a backup file already exists then overwrite
             string backup = $"{CurrentFile}.bak";
             if (!File.Exists(backup))
             {
                 File.Copy(CurrentFile, backup);
             }
-            else
-            {
-                // if a backup file already exists then overwrite
-                // todo better?
-            }
+
         }
 
         // create new file
@@ -249,12 +231,7 @@ public partial class MainPageViewModel : ObservableObject
         string espPath = IsJson() ? Path.ChangeExtension(CurrentFile, ".esp") : CurrentFile;
         if (await _tes3ConvService.ConvertJsonToEspAsync(file, espPath))
         {
-            // todo log success
             await _dialogService.DisplayAlert("Save", "File Saved", "OK");
-        }
-        else
-        {
-            // todo log failure
         }
     }
     private bool CanSave()
@@ -274,47 +251,17 @@ public partial class MainPageViewModel : ObservableObject
             flatRecords.Remove(item);
         }
 
-        //if (selectedRecords.Any())
-        //{
-        //    IEnumerable<Record> newFlatRecords = flatRecords.Except(selectedRecords);
-        //    ObservableCollection<RecordGroup> newRecords = new();
-
-        //    foreach (IGrouping<string, Record> group in newFlatRecords.ToLookup(x => x.Type))
-        //    {
-        //        IEnumerable<Record> vals = group.ToList();
-        //        newRecords.Add(new(group.Key, vals));
-        //    }
-        //    Records = newRecords;
-        //}
-
         UpdateGroupedRecordsWith();
-    }
-
-    [RelayCommand]
-    private static void ChangeTheme()
-    {
-        switch (Application.Current.UserAppTheme)
-        {
-            case AppTheme.Unspecified:
-                Application.Current.UserAppTheme = AppTheme.Light;
-                break;
-            case AppTheme.Light:
-                Application.Current.UserAppTheme = AppTheme.Dark;
-                break;
-            case AppTheme.Dark:
-                Application.Current.UserAppTheme = AppTheme.Light;
-                break;
-            default:
-                break;
-        }
-
-
     }
 
     [RelayCommand(CanExecute = nameof(CanSaveRecord))]
     private async Task SaveRecord()
     {
-        // parse json
+        if (SelectedRecordText is null || SelectedRecord is null)
+        {
+            return;
+        }
+
         JsonElement element;
         try
         {
@@ -337,6 +284,7 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRestoreRecord))]
     private void RestoreRecord()
     {
+        ArgumentNullException.ThrowIfNull(SelectedRecord);
         string key = SelectedRecord.Key;
         Record record = flatRecords[key];
 

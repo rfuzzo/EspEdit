@@ -5,15 +5,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:EspEdit"
     Shell.FlyoutBehavior="Disabled"
-    HeightRequest="400"
-    WidthRequest="400"
     FlyoutHeight="400"
     Title="EspEdit"
     >
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!-- Title="Home" -->
+    <ShellContent ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
 
 </Shell>

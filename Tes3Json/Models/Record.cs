@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace EspEdit.ViewModels;
+namespace Tes3Json.Models;
 
 public class Record
 {

@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json;
 
-namespace EspEdit.ViewModels
+namespace Tes3Json.ViewModels
 {
     /// <summary>
     /// Represents a record in a CollectionView
     /// Use Key to look up record in doctionary
     /// </summary>
-    public class RecordViewModel
+    [ObservableObject]
+    public partial class RecordViewModel
     {
         public RecordViewModel(string key)
         {
@@ -16,6 +17,7 @@ namespace EspEdit.ViewModels
 
         public string Key { get; set; }
 
-        public bool IsSelected { get; set; }
+        [ObservableProperty]
+        private bool isSelected;
     }
 }

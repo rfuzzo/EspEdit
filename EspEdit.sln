@@ -5,6 +5,10 @@ VisualStudioVersion = 17.0.31611.283
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EspEdit", "EspEdit\EspEdit.csproj", "{6A3527DD-1FCE-47FB-BDF3-4CD0BD7F7482}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tes3Json", "Tes3Json\Tes3Json.csproj", "{F5122E55-EEDC-47DD-9C24-58A61B3DD593}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{A17022AE-4C6D-4BEA-BD7D-A492472ADF17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,9 +21,16 @@ Global
 		{6A3527DD-1FCE-47FB-BDF3-4CD0BD7F7482}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A3527DD-1FCE-47FB-BDF3-4CD0BD7F7482}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A3527DD-1FCE-47FB-BDF3-4CD0BD7F7482}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{F5122E55-EEDC-47DD-9C24-58A61B3DD593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5122E55-EEDC-47DD-9C24-58A61B3DD593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5122E55-EEDC-47DD-9C24-58A61B3DD593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5122E55-EEDC-47DD-9C24-58A61B3DD593}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F5122E55-EEDC-47DD-9C24-58A61B3DD593} = {A17022AE-4C6D-4BEA-BD7D-A492472ADF17}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {61F7FB11-1E47-470C-91E2-47F8143E1572}

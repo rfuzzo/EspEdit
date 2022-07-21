@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace EspEdit.Extensions
+namespace Tes3Json.Extensions
 {
     internal static class JsonDocumentExtensions
     {
@@ -17,7 +17,7 @@ namespace EspEdit.Extensions
                 doc.WriteTo(writer);
             }
 
-            return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+            return Encoding.UTF8.GetString(stream.ToArray());
         }
 
     }
