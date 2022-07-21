@@ -9,7 +9,7 @@
   <Identity
     Name="86dd3871-a23f-4028-8506-c97a7ff4d52b"
     Publisher="CN=moritz.baron"
-    Version="1.0.0.0" />
+    Version="0.1.0.0" />
 
   <Properties>
     <DisplayName>Tes3Json.WinUI</DisplayName>
@@ -31,12 +31,12 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Tes3Json.WinUI"
-        Description="Tes3Json.WinUI"
+        DisplayName="Tes3Json"
+        Description="https://github.com/rfuzzo/EspEdit"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
     </Application>

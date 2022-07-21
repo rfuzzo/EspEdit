@@ -2,24 +2,32 @@
     x:Class="Tes3Json.WinUI.Dialogs.AboutDialogContent"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Tes3Json.WinUI.Dialogs"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Tes3Json.WinUI.Dialogs"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    >
+    mc:Ignorable="d">
 
-    <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-        <!-- Content body -->
-        <TextBlock Text="JsonEdit" HorizontalAlignment="Center" FontSize="20"/>
-        <TextBlock x:Name="versionTextBlock" Text="" HorizontalAlignment="Center" />
-        
-        
-        
-        <TextBlock Text=""  HorizontalAlignment="Center" Margin="0,20,0,0">
-            <Hyperlink NavigateUri="https://github.com/rfuzzo/EspEdit"> https://github.com/rfuzzo/EspEdit</Hyperlink>
+    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <!--  Content body  -->
+        <TextBlock
+            HorizontalAlignment="Center"
+            FontSize="20"
+            Text="JsonEdit" />
+        <TextBlock
+            x:Name="versionTextBlock"
+            HorizontalAlignment="Center"
+            Text="" />
+
+
+
+        <TextBlock
+            Margin="0,20,0,0"
+            HorizontalAlignment="Center"
+            Text="">
+            <Hyperlink NavigateUri="https://github.com/rfuzzo/EspEdit">https://github.com/rfuzzo/EspEdit</Hyperlink>
         </TextBlock>
-        
-        
+
+
     </StackPanel>
 
 </Page>

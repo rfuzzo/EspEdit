@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Tes3Json.Services;
 using Tes3Json.ViewModels;
 using Tes3Json.WinUI.Dialogs;
 using Tes3Json.WinUI.Services;
@@ -53,19 +54,29 @@ namespace Tes3Json.WinUI
 
         private void MenuExit_Clicked(object sender, RoutedEventArgs e) => Application.Current.Exit();
 
-        private void ChangeThemeFlyoutItem_Click(object sender, RoutedEventArgs e)
+        private async void ChangeThemeFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
-            switch (App.Current.RequestedTheme)
+            ContentDialog noWifiDialog = new()
             {
-                case ApplicationTheme.Light:
-                    App.Current.RequestedTheme = ApplicationTheme.Dark;
-                    break;
-                case ApplicationTheme.Dark:
-                    App.Current.RequestedTheme = ApplicationTheme.Light;
-                    break;
-                default:
-                    break;
-            }
+                Title = "Error",
+                Content = "Theme change currently not supported",
+                CloseButtonText = "OK",
+                XamlRoot = App.MainRoot.XamlRoot,
+            };
+
+            await noWifiDialog.ShowAsync();
+
+            //switch (App.Current.RequestedTheme)
+            //{
+            //    case ApplicationTheme.Light:
+            //        App.Current.RequestedTheme = ApplicationTheme.Dark;
+            //        break;
+            //    case ApplicationTheme.Dark:
+            //        App.Current.RequestedTheme = ApplicationTheme.Light;
+            //        break;
+            //    default:
+            //        break;
+            //}
         }
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) => ViewModel.PerformSearchCommand.Execute(args.QueryText);

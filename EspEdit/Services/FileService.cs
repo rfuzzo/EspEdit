@@ -45,7 +45,6 @@ namespace EspEdit.Services
             return null;
         }
 
-
-
+        public Task<string> SaveFileAsync(string title, string[] filetypes, string currentFile) => throw new NotImplementedException();
     }
 }
