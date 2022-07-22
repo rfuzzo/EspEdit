@@ -118,7 +118,7 @@ public partial class MainPageViewModel
     private async Task LoadAsync()
     {
         // todo fix non-windows cases
-        CurrentFile = await _fileService.OpenFileAsync("Please select an esp", new string[] { ".json", ".esp", ".esm" });
+        CurrentFile = await _fileService.OpenFileAsync("Open file", new string[] { ".json", ".esp", ".esm" });
 
         await LoadFileInternalAsync();
     }

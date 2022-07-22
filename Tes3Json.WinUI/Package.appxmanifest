@@ -4,16 +4,17 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap rescap">
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  IgnorableNamespaces="uap rescap mp">
 
   <Identity
-    Name="86dd3871-a23f-4028-8506-c97a7ff4d52b"
-    Publisher="CN=moritz.baron"
-    Version="0.1.0.0" />
+    Name="58990Baronm.Tes3Json"
+    Publisher="CN=649290B7-C92C-49C6-958A-9A521E40D1E3"
+    Version="0.1.1.0" />
 
   <Properties>
-    <DisplayName>Tes3Json.WinUI</DisplayName>
-    <PublisherDisplayName>moritz.baron</PublisherDisplayName>
+    <DisplayName>Tes3Json</DisplayName>
+    <PublisherDisplayName>Baronm</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -45,4 +46,6 @@
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
+
+ 
 </Package>
