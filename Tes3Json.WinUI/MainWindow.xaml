@@ -62,7 +62,7 @@
             </MenuBarItem>
 
             <MenuBarItem Title="Help">
-                <MenuFlyoutItem Command="{x:Bind ViewModel.CheckForUpdateCommand}" Text="Check for Update" />
+                <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Check for Update" />
                 <MenuFlyoutItem Click="{x:Bind AboutFlyoutItem_Click}" Text="About" />
             </MenuBarItem>
         </MenuBar>

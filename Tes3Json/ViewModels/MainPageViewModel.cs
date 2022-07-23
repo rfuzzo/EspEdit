@@ -306,8 +306,10 @@ public partial class MainPageViewModel
     }
     private bool CanRestoreRecord() => SelectedRecord is not null;
 
+
+
     [RelayCommand]
-    private void CheckForUpdate()
+    private async Task CheckForUpdate()
     {
 
     }

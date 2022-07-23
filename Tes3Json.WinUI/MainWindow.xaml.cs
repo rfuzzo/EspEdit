@@ -20,6 +20,7 @@ using Tes3Json.WinUI.Dialogs;
 using Tes3Json.WinUI.Services;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Services.Store;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 
@@ -156,6 +157,21 @@ namespace Tes3Json.WinUI
             findRecordsTextBox.Focus(FocusState.Programmatic);
 
             args.Handled = true;
+        }
+
+        private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+        {
+            ContentDialog dialog = new()
+            {
+                XamlRoot = App.MainRoot.XamlRoot,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = "About",
+                PrimaryButtonText = "OK",
+                DefaultButton = ContentDialogButton.Primary,
+                Content = new AboutDialogContent()
+            };
+
+            await dialog.ShowAsync();
         }
     }
 }
