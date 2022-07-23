@@ -10,7 +10,7 @@
   <Identity
     Name="58990Baronm.Tes3Json"
     Publisher="CN=649290B7-C92C-49C6-958A-9A521E40D1E3"
-    Version="0.1.1.0" />
+    Version="0.1.2.0" />
 
   <Properties>
     <DisplayName>Tes3Json</DisplayName>

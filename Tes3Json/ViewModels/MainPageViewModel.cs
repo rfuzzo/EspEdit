@@ -72,6 +72,8 @@ public partial class MainPageViewModel
     //[ObservableProperty]
     //private InfoBarSeverity editorInfoSeverity;
 
+    [ObservableProperty]
+    private bool isFullTextSearchEnabled;
 
     #endregion
 
@@ -93,15 +95,18 @@ public partial class MainPageViewModel
     [RelayCommand]
     private void PerformSearch(string text)
     {
-        string filter = text.ToLower();
+        string filter = text;
         UpdateGroupedRecordsWith(filter);
     }
 
     private void UpdateGroupedRecordsWith(string filter = "")
     {
-        IEnumerable<Record> filteredRecords = !string.IsNullOrEmpty(filter)
-            ? flatRecords.Values.Where(x => x.Key.ToLower().Contains(filter))
-            : flatRecords.Values;
+        IEnumerable<Record> filteredRecords = new List<Record>();
+        filteredRecords = string.IsNullOrEmpty(filter)
+            ? (IEnumerable<Record>)flatRecords.Values
+            : IsFullTextSearchEnabled
+                ? flatRecords.Values.Where(x => x.Item.GetRawText().Contains(filter, StringComparison.InvariantCultureIgnoreCase))
+                : flatRecords.Values.Where(x => x.Key.ToLower().Contains(filter.ToLower()));
 
         ILookup<string, Record> groups = filteredRecords.ToLookup(x => x.Type);
 
@@ -300,4 +305,10 @@ public partial class MainPageViewModel
         EditorInfoIsOpen = false;
     }
     private bool CanRestoreRecord() => SelectedRecord is not null;
+
+    [RelayCommand]
+    private void CheckForUpdate()
+    {
+
+    }
 }
