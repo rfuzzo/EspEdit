@@ -32,16 +32,15 @@ jobs:
     # echo
     - name: output step
       run: |
-        echo new_tag ${{ steps.tag_version.outputs.new_tag }} \n new_version ${{ steps.tag_version.outputs.new_version }} \n previous_tag ${{ steps.tag_version.outputs.previous_tag }} \n previous_version ${{ steps.tag_version.outputs.previous_version }}  \n previous_version ${{ steps.tag_version.outputs.previous_version }}
+        echo new_tag: ${{ steps.tag_version.outputs.new_tag }}, new_version: ${{ steps.tag_version.outputs.new_version }}, previous_tag: ${{ steps.tag_version.outputs.previous_tag }}, previous_version: ${{ steps.tag_version.outputs.previous_version }}, release_type: ${{ steps.tag_version.outputs.release_type }}
     # echo
     - name: output step
       run: |
-        echo 
-        new_tag ${{ steps.tag_version.outputs.new_tag }}
-        new_version ${{ steps.tag_version.outputs.new_version }}
-        previous_tag ${{ steps.tag_version.outputs.previous_tag }}
-        previous_version ${{ steps.tag_version.outputs.previous_version }}
-        previous_version ${{ steps.tag_version.outputs.previous_version }}
+        echo new_tag: ${{ steps.tag_version.outputs.new_tag }}
+        echo new_version: ${{ steps.tag_version.outputs.new_version }}
+        echo previous_tag: ${{ steps.tag_version.outputs.previous_tag }}
+        echo previous_version: ${{ steps.tag_version.outputs.previous_version }}
+        echo release_type: ${{ steps.tag_version.outputs.release_type }}
 
 
     # echo
