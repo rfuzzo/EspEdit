@@ -34,7 +34,7 @@ jobs:
       run: |
         echo new_tag: ${{ steps.tag_version.outputs.new_tag }}, new_version: ${{ steps.tag_version.outputs.new_version }}, previous_tag: ${{ steps.tag_version.outputs.previous_tag }}, previous_version: ${{ steps.tag_version.outputs.previous_version }}, release_type: ${{ steps.tag_version.outputs.release_type }}
     # echo
-    - name: output step
+    - name: output step 2
       run: |
         echo new_tag: ${{ steps.tag_version.outputs.new_tag }}
         echo new_version: ${{ steps.tag_version.outputs.new_version }}
@@ -47,3 +47,11 @@ jobs:
     - name: output
       run: |
         echo "This is a beta release so you may encounter bugs. Please report them. \n ${{ steps.tag_version.outputs.changelog }}"
+        
+    # RELEASE
+    - name: Release
+      run: |
+          gh release create ${{ steps.tag_version.outputs.new_version }} -n "${{ env.MESSAGE }}" --generate-notes -d
+      env:
+        MESSAGE: "This is a beta release so you may encounter bugs. Please report them. ${{ steps.tag_version.outputs.changelog }}"
+        
