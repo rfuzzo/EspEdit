@@ -54,4 +54,5 @@ jobs:
           gh release create ${{ steps.tag_version.outputs.new_version }} -n "${{ env.MESSAGE }}" --generate-notes -d
       env:
         MESSAGE: "This is a beta release so you may encounter bugs. Please report them. ${{ steps.tag_version.outputs.changelog }}"
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
